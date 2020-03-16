@@ -46,4 +46,28 @@ exports.getUser = async function(req, res) {
         res.status(500)
             .send(`CONTROLLER: ERROR retrieving user ${err}`);
     }
+
+};
+
+exports.login = async function(req, res) {
+    console.log('\n CONTROLLER: Request to log user details');
+
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+
+        let result = await user.logUser(email);
+        console.log(result);
+
+        // if (result === password) {
+        //     res.status(200)
+        //         .send()
+        // }
+        //https://www.npmjs.com/package/uid-generator token generator
+
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR login user ${err}`);
+    }
+
 };

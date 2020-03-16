@@ -23,3 +23,14 @@ exports.retrieveUser = async function(userID) {
     console.log(result.length);
     return result;
 };
+
+exports.logUser = async function(email) {
+    console.log(" MODEL: Request to log user");
+
+    let values = [email];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT (user_id, password) FROM User WHERE email = ?';
+    const [result, _] = await conn.query(query, values);
+
+    return result;
+};
