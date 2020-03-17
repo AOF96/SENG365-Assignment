@@ -1,3 +1,5 @@
+//https://www.npmjs.com/package/uid-generator token generator
+
 const UIDGenerator = require('uid-generator');
 const uidgen = new UIDGenerator();
 
@@ -59,22 +61,19 @@ exports.login = async function(req, res) {
         const email = req.body.email;
         const password = req.body.password;
 
-        // let result = await user.logUser(email);
-        // if (result.length === 0) {
-        //     res.status(400)
-        //         .send("User does not exist");
-        // } else {
-        //     let newToken = await uidgen.generate();
-        //          res.status(200)
-        //              .send({"userId": result[0].user_id, "token": newToken});
-        // }
+        let result = await user.logUser(email);
+        if (result.length === 0 || result[0].password !== password) {
+            res.status(400)
+                .send("User does not exist or incorrect password");
+        } else {
+            let newToken = await uidgen.generate();
+            await user.setToken(email, newToken);
+            res.status(200)
+                .send({"userId": result[0].user_id, "token": newToken});
+        }
 
-        // if (result.password === password) {
-        //     let newToken = await uidgen.generate();
-        //     res.status(200)
-        //         .send({"userId": result, "token":})
-        // }
-        //https://www.npmjs.com/package/uid-generator token generator
+
+
 
     } catch (err) {
         res.status(500)

@@ -34,3 +34,11 @@ exports.logUser = async function(email) {
 
     return result;
 };
+
+exports.setToken = async function(email, token){
+    console.log(" MODEL: Request to set a token in the database");
+
+    let values = [email, token];
+    const conn = await db.getPool().getConnection();
+    const query = 'UPDATE TABLE User SET  WHERE user_id = ?';
+};
