@@ -29,7 +29,7 @@ exports.logUser = async function(email) {
 
     let values = [email];
     const conn = await db.getPool().getConnection();
-    const query = 'SELECT (user_id, password) FROM User WHERE email = ?';
+    const query = 'SELECT user_id, password FROM User WHERE email = ?';
     const [result, _] = await conn.query(query, values);
 
     return result;

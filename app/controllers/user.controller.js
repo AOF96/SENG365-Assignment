@@ -1,3 +1,6 @@
+const UIDGenerator = require('uid-generator');
+const uidgen = new UIDGenerator();
+
 const user = require('../models/user.model');
 
 exports.register = async function(req, res) {
@@ -56,12 +59,20 @@ exports.login = async function(req, res) {
         const email = req.body.email;
         const password = req.body.password;
 
-        let result = await user.logUser(email);
-        console.log(result);
+        // let result = await user.logUser(email);
+        // if (result.length === 0) {
+        //     res.status(400)
+        //         .send("User does not exist");
+        // } else {
+        //     let newToken = await uidgen.generate();
+        //          res.status(200)
+        //              .send({"userId": result[0].user_id, "token": newToken});
+        // }
 
-        // if (result === password) {
+        // if (result.password === password) {
+        //     let newToken = await uidgen.generate();
         //     res.status(200)
-        //         .send()
+        //         .send({"userId": result, "token":})
         // }
         //https://www.npmjs.com/package/uid-generator token generator
 
