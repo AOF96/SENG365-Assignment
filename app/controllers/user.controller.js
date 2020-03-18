@@ -101,7 +101,8 @@ exports.logout = async function(req, res) {
         let token = req.get("X-Authorization");
 
         let result = await user.deleteToken(token);
-        if (result.length === 0) {
+
+        if (result.affectedRows === 0) {
             res.status(401)
                 .send();
         } else {
@@ -111,5 +112,32 @@ exports.logout = async function(req, res) {
     } catch(err) {
         res.status(500)
             .send(`CONTROLLER: ERROR logging user out ${err}`);
+    }
+};
+
+exports.editUser = async function(req, res) {
+    console.log('\n CONTROLLER: Request to edit user information');
+
+    try {
+        let token = req.get("X-Authorization");
+        let result = await user.validateUser(token);
+        let id = req.params.id;
+
+        if (result.length === 0 || result[0].user_id != id) {
+            res.status(401)
+                .send();
+        } else {
+            let name = req.body.name;
+            let email = req.body.email;
+            let password = req.body.password;
+            let currentPassword = req.body.currentPassword;
+            let city = req.body.city;
+            let country = req.body.country;
+
+
+        }
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR editing user ${err}`);
     }
 };

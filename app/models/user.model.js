@@ -1,5 +1,17 @@
 const db = require('../../config/db');
 
+exports.validateUser = async function(token) {
+    console.log(" MODEL: Request to validate a user token");
+
+    let values = [token];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT user_id from User WHERE auth_token = ?';
+    const [result, _] = await conn.query(query, values);
+
+    conn.release();
+    return result;
+};
+
 exports.createUser = async function(name, email, password, city, country) {
     console.log(" MODEL: Request to insert a new user into the database");
 
