@@ -34,16 +34,29 @@ exports.getUser = async function(req, res) {
     console.log('\n CONTROLLER: Request to retrieve a user from the database');
 
     try {
-        const id = req.params.userId;
-        const result = await user.retrieveUser(id);
+        const id = req.params.id;
+        console.log(id);
+        const token = req.get("X-Authorization");
+        const result = await user.retrieveUser(id, token);
 
         if (result.length === 0) {
             res.status(404)
                 .send("User not found");
 
+        } else if (result[0].hasOwnProperty("email")) {
+            res.status(200)
+                .send({
+                    "name": result[0].name,
+                    "city": result[0].city,
+                    "country": result[0].country,
+                                    "email": result[0].email});
         } else {
             res.status(200)
-                .send(result);
+                .send({
+                    "name": result[0].name,
+                    "city": result[0].city,
+                    "country": result[0].country,
+                });
         }
 
 
@@ -80,4 +93,23 @@ exports.login = async function(req, res) {
             .send(`CONTROLLER: ERROR login user ${err}`);
     }
 
+};
+
+exports.logout = async function(req, res) {
+    console.log('\n CONTROLLER: Request to log out an user');
+    try {
+        let token = req.get("X-Authorization");
+
+        let result = await user.deleteToken(token);
+        if (result.length === 0) {
+            res.status(401)
+                .send();
+        } else {
+            res.status(200)
+                .send("User was successfully logged out");
+        }
+    } catch(err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR logging user out ${err}`);
+    }
 };
