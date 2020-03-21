@@ -83,10 +83,11 @@ exports.deleteToken = async function(token) {
 exports.updateUserInfo = async function(value, id, type) {
     console.log(" MODEL: Request to update user info");
 
-    let values = [type, value, id];
+    let values = [value, id];
     const conn = await db.getPool().getConnection();
-    const query = 'UPDATE User SET ';
-    query.concat('value = ')
-    await conn.query(query, values);
+    const query = 'UPDATE User SET '.concat(type," = ? WHERE user_id = ?");
+    console.log(query);
+    let result = await conn.query(query, values);
+    console.log(result);
     conn.release();
 };
