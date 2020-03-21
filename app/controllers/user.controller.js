@@ -119,6 +119,17 @@ exports.editUser = async function(req, res) {
     console.log('\n CONTROLLER: Request to edit user information');
 
     try {
+
+        // let query = 'UPDATE User SET ';
+        // for (let key in req.body) {
+        //     query += key + ' = ?, ';
+        // }
+        // console.log(query);
+        // query = query.substring(0, query.length - 1);
+        // console.log(query);
+
+
+
         let token = req.get("X-Authorization");
         let result = await user.validateUser(token);
         let id = req.params.id;
@@ -127,7 +138,13 @@ exports.editUser = async function(req, res) {
             res.status(401)
                 .send();
         } else {
+
             let name = req.body.name;
+            if (typeof name !== "undefined") {
+                await user.updateUserInfo(name, id, "name");
+                res.status(200)
+                    .send("Profile info updated");
+            }
             let email = req.body.email;
             let password = req.body.password;
             let currentPassword = req.body.currentPassword;
