@@ -119,17 +119,7 @@ exports.editUser = async function(req, res) {
     console.log('\n CONTROLLER: Request to edit user information');
 
     try {
-
-        // let query = 'UPDATE User SET ';
-        // for (let key in req.body) {
-        //     query += key + ' = ?, ';
-        // }
-        // console.log(query);
-        // query = query.substring(0, query.length - 1);
-        // console.log(query);
-
-
-
+        let updated = false;
         let token = req.get("X-Authorization");
         let result = await user.validateUser(token);
         let id = req.params.id;
@@ -139,21 +129,71 @@ exports.editUser = async function(req, res) {
                 .send();
         } else {
 
+            let email = req.body.email;
+            if (typeof email !== "undefined") {
+                if (!email.includes("@")) {
+                    res.status(400)
+                        .send("Invalid email")
+                }
+                let isPresent = await user.checkEmail(email);
+                if (isPresent) {
+                    res.status(400)
+                        .send("Email is already in use");
+                } else {
+                    await user.updateUserInfo(email, id, "email");
+                    updated = true;
+                }
+            }
+
+            let password = req.body.password;
+            let currentPassword = req.body.currentPassword;
+            if (typeof password !== "undefined" && typeof currentPassword !== "undefined") {
+
+                if (password === "") {
+                    res.status(400)
+                        .send("Passwords is empty");
+                }
+
+                let passwordValidation = await user.getCurrentPassword(id);
+                console.log(passwordValidation);
+                if (passwordValidation[0].password !== currentPassword) {
+                    res.status(400)
+                        .send("Passwords don't match");
+                } else {
+                    await user.updateUserInfo(password, id, "password");
+                    updated = true;
+                }
+
+
+            }
+
+
             let name = req.body.name;
             if (typeof name !== "undefined") {
                 await user.updateUserInfo(name, id, "name");
-                res.status(200)
-                    .send("Profile info updated");
+                updated = true;
             }
-            let email = req.body.email;
-            let password = req.body.password;
-            let currentPassword = req.body.currentPassword;
+
+
             let city = req.body.city;
+            if (typeof city !== "undefined") {
+                await user.updateUserInfo(city, id, "city");
+                updated = true;
+            }
+
             let country = req.body.country;
+            if (typeof country !== "undefined") {
+                await user.updateUserInfo(country, id, "country");
+                updated = true;
+            }
 
-
-
-
+            if (updated === false) {
+                res.status(400)
+                    .send("No changes where provided");
+            } else {
+                res.status(200)
+                    .send();
+            }
 
         }
     } catch (err) {

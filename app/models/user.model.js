@@ -12,6 +12,33 @@ exports.validateUser = async function(token) {
     return result;
 };
 
+exports.getCurrentPassword = async function(id) {
+    let values = [id];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT password from User WHERE user_id = ?';
+    const [result, _] = await conn.query(query, values);
+
+    conn.release();
+    return result;
+};
+
+exports.checkEmail = async function(email) {
+
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT email from User';
+    const [result, _] = await conn.query(query);
+
+    let isPresent = false;
+    for (let i = 0; i < result.length; i++) {
+        if (result[i].email === email) {
+            isPresent = true;
+            break;
+        }
+    }
+    conn.release();
+    return isPresent;
+};
+
 exports.createUser = async function(name, email, password, city, country) {
     console.log(" MODEL: Request to insert a new user into the database");
 
@@ -86,8 +113,7 @@ exports.updateUserInfo = async function(value, id, type) {
     let values = [value, id];
     const conn = await db.getPool().getConnection();
     const query = 'UPDATE User SET '.concat(type," = ? WHERE user_id = ?");
-    console.log(query);
     let result = await conn.query(query, values);
-    console.log(result);
+
     conn.release();
 };
