@@ -1,5 +1,4 @@
 # SENG365 2020 Assignment 1
-#Extra random line.
 ## Overview of the continuous deployment process
 
 1. You hackity hack...
