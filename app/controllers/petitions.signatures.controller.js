@@ -1,4 +1,5 @@
 const signatures = require('../models/petitions.signatures.model');
+const user = require('../models/user.model');
 
 exports.view = async function(req, res) {
     console.log("CONTROLLER: Request to view all users who signed a petition.");
@@ -19,4 +20,38 @@ exports.view = async function(req, res) {
             .send(`CONTROLLER: ERROR viewing petitions ${err}`);
     }
     
+};
+
+exports.sign = async function(req, res) {
+    console.log("CONTROLLER: Request to sign a petition.");
+
+    try {
+        const petitionID = req.params.id;
+        const token = req.get("X-Authorization");
+
+        let petitionExists = await signatures.validatePetition(petitionID);
+        if (!petitionExists) {
+            res.status(404)
+                .send("Not Found");
+        }
+        let userIsValid = await user.validateUser(token);
+        const userId = userIsValid[0].user_id;
+        if (token === "undefined" || userIsValid.length === 0) {
+            res.status(401)
+                .send("Unauthorized");
+        }
+
+        let result = await signatures.signPetition(userId, petitionID);
+        if (result) {
+            res.status(201)
+                .send("Created");
+        } else {
+            res.status(403)
+                .send("Forbidden");
+        }
+
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR signing a petition ${err}`);
+    }
 };
