@@ -56,8 +56,10 @@ exports.signPetition = async function(user_id, petition_id) {
     // console.log("Current date: " + currentDate);
     // console.log(petitionDate < currentDate);
     let dateIsValid = validateDate(currentDate, petitionDate);
+    console.log(result2);
     let isSigned = result2.length > 0;
-    if (dateIsValid || isSigned) {
+    console.log(isSigned);
+    if (!dateIsValid || isSigned) {
         return outcome;
     } else {
         let insertQueryInputs = [user_id, petition_id, currentDate];
