@@ -28,17 +28,23 @@ exports.sign = async function(req, res) {
     try {
         const petitionID = req.params.id;
         const token = req.get("X-Authorization");
+        if (token === "") {
+            res.status(401)
+                .send("Unauthorized");
+            return;
+        }
+        let userIsValid = await user.validateUser(token);
 
+        if (token === "undefined" || userIsValid.length === 0) {
+            res.status(401)
+                .send("Unauthorized");
+            return;
+        }
+        const userId = userIsValid[0].user_id;
         let petitionExists = await signatures.validatePetition(petitionID);
         if (!petitionExists) {
             res.status(404)
                 .send("Not Found");
-        }
-        let userIsValid = await user.validateUser(token);
-        const userId = userIsValid[0].user_id;
-        if (token === "undefined" || userIsValid.length === 0) {
-            res.status(401)
-                .send("Unauthorized");
         }
 
         let result = await signatures.signPetition(userId, petitionID);
