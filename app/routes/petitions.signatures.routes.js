@@ -4,5 +4,6 @@ module.exports = function(app) {
 
     app.route(app.rootUrl + '/petitions/:id/signatures')
         .get(signatures.view)
-        .post(signatures.sign);
+        .post(signatures.sign)
+        .delete(signatures.remove);
 };

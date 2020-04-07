@@ -41,6 +41,7 @@ exports.sign = async function(req, res) {
             return;
         }
         const userId = userIsValid[0].user_id;
+        console.log(userId);
         let petitionExists = await signatures.validatePetition(petitionID);
         if (!petitionExists) {
             res.status(404)
@@ -60,4 +61,40 @@ exports.sign = async function(req, res) {
         res.status(500)
             .send(`CONTROLLER: ERROR signing a petition ${err}`);
     }
+};
+
+exports.remove = async function(req, res) {
+    console.log("CONTROLLER: Request to remove a petition.");
+
+    try {
+        const petitionID = req.params.id;
+        const token = req.get("X-Authorization");
+        if (token === "") {
+            res.status(401)
+                .send("Unauthorized");
+            return;
+        }
+        let userIsValid = await user.validateUser(token);
+
+        if (token === "undefined" || userIsValid.length === 0) {
+            res.status(401)
+                .send("Unauthorized");
+            return;
+        }
+
+        const userId = userIsValid[0].user_id;
+        let result = await signatures.removeSignature(userId, petitionID);
+        //console.log(result);
+        if (result) {
+            res.status(200)
+                .send("OK")
+        } else {
+            res.status(403)
+                .send("Forbidden")
+        }
+    } catch(err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR removing petition ${err}`);
+    }
+
 };
