@@ -41,7 +41,6 @@ exports.sign = async function(req, res) {
             return;
         }
         const userId = userIsValid[0].user_id;
-        console.log(userId);
         let petitionExists = await signatures.validatePetition(petitionID);
         if (!petitionExists) {
             res.status(404)
@@ -83,6 +82,14 @@ exports.remove = async function(req, res) {
         }
 
         const userId = userIsValid[0].user_id;
+
+        let petitionExists = await signatures.validatePetition(petitionID);
+        if (!petitionExists) {
+            res.status(404)
+                .send("Not Found");
+                return;
+        }
+
         let result = await signatures.removeSignature(userId, petitionID);
         //console.log(result);
         if (result) {
