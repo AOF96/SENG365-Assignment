@@ -7,5 +7,6 @@ module.exports = function(app) {
 
     app.route(app.rootUrl + '/petitions/:id')
         .delete(petitions.removePetition)
-        .patch(petitions.editPetition);
+        .patch(petitions.editPetition)
+        .get(petitions.getPetition);
 };

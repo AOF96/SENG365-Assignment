@@ -113,3 +113,19 @@ exports.validateAuthor = async function(userID, petitionID) {
     conn.release();
     return result;
 };
+
+exports.getOnePetition = async function(petitionID) {
+    console.log(" MODEL: Request to retrieve a petition from the database");
+
+    let input = [petitionID];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT p.petition_id as petitionId, p.title,  p.description, p.author_id as authorId, a.name as authorName, ' +
+        'a.city as authorCity, (SELECT name from Category where category_id = p.category_id) as category, ' +
+        ' (SELECT COUNT(*) FROM Signature WHERE petition_id = p.petition_id) as signatureCount,  ' +
+        '  a.country as authorCountry, p.created_date as createdDate, ' +
+        'p.closing_date as closingDate FROM Petition p JOIN User a WHERE p.petition_id = ? AND p.author_id = a.user_id';
+    const [result, _] = await conn.query(query, input);
+    conn.release();
+
+    return result;
+};

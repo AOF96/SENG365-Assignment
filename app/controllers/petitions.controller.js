@@ -143,3 +143,24 @@ exports.editPetition = async function (req, res) {
             .send(`CONTROLLER: ERROR editing petition: ${err}`);
     }
 };
+
+exports.getPetition = async function(req, res) {
+    console.log("CONTROLLER: Request to view a single petition");
+
+    try {
+        let petitionID = req.params.id;
+        let petitionExists = await signatures.validatePetition(petitionID);
+        if (!petitionExists) {
+            res.status(404)
+                .send();
+            return;
+        }
+
+        const result = await petitions.getOnePetition(petitionID);
+        res.status(200)
+            .send(result[0]);
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR viewing petition: ${err}`);
+    }
+};
