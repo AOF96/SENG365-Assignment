@@ -9,4 +9,7 @@ module.exports = function(app) {
         .delete(petitions.removePetition)
         .patch(petitions.editPetition)
         .get(petitions.getPetition);
+
+    app.route(app.rootUrl + '/petitions')
+        .post(petitions.createPetition);
 };

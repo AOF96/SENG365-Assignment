@@ -164,3 +164,54 @@ exports.getPetition = async function(req, res) {
             .send(`CONTROLLER: ERROR viewing petition: ${err}`);
     }
 };
+
+exports.createPetition = async function(req, res) {
+    console.log("CONTROLLER: Request to create a new petition");
+
+    try {
+        const token = req.get("X-Authorization");
+        let userID = await user.validateUser(token);
+        if (token === "" || userID.length === 0) {
+            res.status(401)
+                .send();
+            return;
+        }
+
+        userID = userID[0].user_id;
+        let title = req.body.title;
+        let description = req.body.description;
+        let categoryId = req.body.categoryId;
+        let closingDate = req.body.closingDate;
+        let currentDate = new Date();
+
+        const titleIsInvalid = (typeof title === "undefined" || title === "");
+        const descriptionIsInvalid = (typeof description === "undefined" || description === "");
+        const categoryIsInvalid =  (typeof categoryId === "undefined" || categoryId === "" || !(await petitions.validateCategory(categoryId)));
+        let dateIsValid = false;
+
+        if (titleIsInvalid || descriptionIsInvalid || categoryIsInvalid) {
+            res.status(400)
+                .send();
+            return;
+        }
+        if (typeof closingDate !== "undefined") {
+            closingDate = new Date(closingDate);
+            if (closingDate < currentDate) {
+                res.status(400)
+                    .send();
+                return;
+            } else {
+                dateIsValid = true;
+            }
+        }
+
+
+        const result = await petitions.insertPetition(userID, title, description, categoryId, currentDate, closingDate, dateIsValid);
+
+        res.status(200)
+            .send({"petitionId": result.insertId});
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR creating petition: ${err}`);
+    }
+};

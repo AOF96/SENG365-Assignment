@@ -115,7 +115,7 @@ exports.validateAuthor = async function(userID, petitionID) {
 };
 
 exports.getOnePetition = async function(petitionID) {
-    console.log(" MODEL: Request to retrieve a petition from the database");
+    console.log("MODEL: Request to retrieve a petition from the database");
 
     let input = [petitionID];
     const conn = await db.getPool().getConnection();
@@ -127,5 +127,22 @@ exports.getOnePetition = async function(petitionID) {
     const [result, _] = await conn.query(query, input);
     conn.release();
 
+    return result;
+};
+
+exports.insertPetition = async function(userID, title, description, categoryId, currentDate, closingDate, dateIsValid) {
+    console.log("MODEL: Request to insert a new petition into the database");
+
+    let inputs = [title, description, userID, categoryId, currentDate];
+    const conn = await db.getPool().getConnection();
+    const query = "INSERT INTO Petition (title, description, author_id, category_id, created_date) VALUES (?, ?, ?, ?, ?)";
+    const [result, _] = await conn.query(query, inputs);
+
+    if (dateIsValid) {
+        inputs = [closingDate, result.insertId];
+        const dateQuery = "UPDATE Petition SET closing_date = ? WHERE petition_id = ?";
+        await conn.query(dateQuery, inputs);
+    }
+    conn.release();
     return result;
 };
