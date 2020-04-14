@@ -208,7 +208,7 @@ exports.createPetition = async function(req, res) {
 
         const result = await petitions.insertPetition(userID, title, description, categoryId, currentDate, closingDate, dateIsValid);
 
-        res.status(200)
+        res.status(201)
             .send({"petitionId": result.insertId});
     } catch (err) {
         res.status(500)
