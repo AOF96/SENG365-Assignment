@@ -183,7 +183,7 @@ exports.retrievePetitions = async function(hasParams, categoryId, authorId, sort
             sortParameter.includes("ALPHABETICAL") ? querySection += "ORDER BY title " : querySection += "ORDER BY signatureCount ";
             sortParameter.includes("ASC") ? querySection += "ASC " : querySection += "DESC ";
         } else {
-            querySection = 'ORDER BY signatureCount DESC';
+            querySection += 'ORDER BY signatureCount DESC';
         }
 
         query += querySection;
