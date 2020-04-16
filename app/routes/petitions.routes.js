@@ -11,5 +11,6 @@ module.exports = function(app) {
         .get(petitions.getPetition);
 
     app.route(app.rootUrl + '/petitions')
-        .post(petitions.createPetition);
+        .post(petitions.createPetition)
+        .get(petitions.viewPetitions);
 };

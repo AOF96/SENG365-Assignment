@@ -119,10 +119,10 @@ exports.getOnePetition = async function(petitionID) {
 
     let input = [petitionID];
     const conn = await db.getPool().getConnection();
-    const query = 'SELECT p.petition_id as petitionId, p.title,  p.description, p.author_id as authorId, a.name as authorName, ' +
+    const query = 'SELECT p.petition_id as petitionId, p.title, p.description, p.author_id as authorId, a.name as authorName, ' +
         'a.city as authorCity, (SELECT name from Category where category_id = p.category_id) as category, ' +
-        ' (SELECT COUNT(*) FROM Signature WHERE petition_id = p.petition_id) as signatureCount,  ' +
-        '  a.country as authorCountry, p.created_date as createdDate, ' +
+        '(SELECT COUNT(*) FROM Signature WHERE petition_id = p.petition_id) as signatureCount,  ' +
+        'a.country as authorCountry, p.created_date as createdDate, ' +
         'p.closing_date as closingDate FROM Petition p JOIN User a WHERE p.petition_id = ? AND p.author_id = a.user_id';
     const [result, _] = await conn.query(query, input);
     conn.release();
@@ -146,3 +146,48 @@ exports.insertPetition = async function(userID, title, description, categoryId, 
     conn.release();
     return result;
 };
+
+exports.retrievePetitions = async function(hasParams, categoryId, authorId, sortParameter, q) {
+    console.log("MODEL: Request to retrieve petitions from the database");
+
+    const conn = await db.getPool().getConnection();
+    let result;
+    let querySection = '';
+    let inputs = [];
+    let query = 'SELECT DISTINCT p.petition_id AS petitionId, p.title AS title, ' +
+        '(SELECT name FROM Category WHERE category_id = p.category_id) AS category, a.name AS authorName, ' +
+        '(SELECT COUNT(*) FROM Signature WHERE petition_id = p.petition_id) as signatureCount FROM ' +
+        'Petition p JOIN User a  WHERE p.author_id = a.user_id ';
+
+    if (!hasParams) {
+        querySection = 'ORDER BY signatureCount DESC';
+        query += querySection;
+        result = await conn.query(query);
+    } else {
+        if (typeof q !=="undefined") {
+            inputs.push(q);
+            querySection += "AND locate(?, p.title) > 0 ";
+        }
+
+        if (typeof categoryId !== "undefined") {
+            inputs.push(categoryId);
+            querySection += "AND category_id = ? ";
+        }
+
+        if (typeof authorId !== "undefined") {
+            inputs.push(authorId);
+            querySection += "AND author_id = ? ";
+        }
+
+        if (typeof sortParameter !== "undefined") {
+            sortParameter.includes("ALPHABETICAL") ? querySection += "ORDER BY title " : querySection += "ORDER BY signatureCount ";
+            sortParameter.includes("ASC") ? querySection += "ASC " : querySection += "DESC ";
+        }
+
+        query += querySection;
+        result = await conn.query(query, inputs);
+    }
+
+    conn.release();
+    return result[0];
+}

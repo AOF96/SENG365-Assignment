@@ -35,7 +35,6 @@ exports.getUser = async function(req, res) {
 
     try {
         const id = req.params.id;
-        console.log(id);
         const token = req.get("X-Authorization");
         const result = await user.retrieveUser(id, token);
 

@@ -215,3 +215,59 @@ exports.createPetition = async function(req, res) {
             .send(`CONTROLLER: ERROR creating petition: ${err}`);
     }
 };
+
+exports.viewPetitions = async function (req, res) {
+    console.log("CONTROLLER: Request to view petitions with different categories");
+
+    try {
+        let result;
+        let hasParams = false;
+
+        if (Object.keys(req.query).length === 0) {
+            result = await petitions.retrievePetitions(hasParams);
+            res.status(200)
+                .send(result);
+        } else {
+            hasParams = true;
+            const startIndex = req.query.startIndex;
+            const count = req.query.count;
+            const q = req.query.q;
+            const categoryId = req.query.categoryId;
+            const authorId = req.query.authorId;
+            const sortBy = req.query.sortBy;
+
+            if (typeof categoryId !== "undefined") {
+                if(!await petitions.validateCategory(categoryId)) {
+                    res.status(400)
+                        .send();
+                    return;
+                }
+            }
+
+            const validSortingValues = ["ALPHABETICAL_ASC", "ALPHABETICAL_DESC", "SIGNATURES_ASC", "SIGNATURES_DESC"];
+            if (typeof sortBy !== "undefined") {
+                if (!validSortingValues.includes(sortBy)) {
+                    res.status(400)
+                        .send();
+                    return;
+                }
+            }
+
+            result = await petitions.retrievePetitions(hasParams, categoryId, authorId, sortBy, q);
+            if (typeof startIndex !== "undefined") {
+                result = result.slice(startIndex);
+            }
+            if (typeof count !== "undefined") {
+                result = result.slice(0, count);
+            }
+            res.status(200)
+                .send(result);
+        }
+
+
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR viewing petitions: ${err}`);
+    }
+
+}
