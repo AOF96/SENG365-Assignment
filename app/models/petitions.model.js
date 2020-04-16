@@ -157,7 +157,7 @@ exports.retrievePetitions = async function(hasParams, categoryId, authorId, sort
     let query = 'SELECT DISTINCT p.petition_id AS petitionId, p.title AS title, ' +
         '(SELECT name FROM Category WHERE category_id = p.category_id) AS category, a.name AS authorName, ' +
         '(SELECT COUNT(*) FROM Signature WHERE petition_id = p.petition_id) as signatureCount FROM ' +
-        'Petition p JOIN User a  WHERE p.author_id = a.user_id ';
+        'Petition p JOIN User a WHERE p.author_id = a.user_id ';
 
     if (!hasParams) {
         querySection = 'ORDER BY signatureCount DESC';
@@ -182,6 +182,8 @@ exports.retrievePetitions = async function(hasParams, categoryId, authorId, sort
         if (typeof sortParameter !== "undefined") {
             sortParameter.includes("ALPHABETICAL") ? querySection += "ORDER BY title " : querySection += "ORDER BY signatureCount ";
             sortParameter.includes("ASC") ? querySection += "ASC " : querySection += "DESC ";
+        } else {
+            querySection = 'ORDER BY signatureCount DESC';
         }
 
         query += querySection;
