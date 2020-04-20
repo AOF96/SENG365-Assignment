@@ -12,6 +12,22 @@ exports.validateUser = async function(token) {
     return result;
 };
 
+exports.userExists = async function(userID) {
+    console.log(" MODEL: Request to check if a user exists in the database given an id");
+
+    let result = false;
+    let input = [userID];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT * from User WHERE user_id = ?';
+    const [outcome, _] = await conn.query(query, input);
+    conn.release();
+
+    if (outcome.length > 0) {
+        result = true;
+    }
+    return result;
+};
+
 exports.getCurrentPassword = async function(id) {
     let values = [id];
     const conn = await db.getPool().getConnection();
@@ -128,4 +144,14 @@ exports.getPhotoFilename = async function(id) {
     conn.release();
 
     return result;
+};
+
+exports.saveFileName = async function(filename, userID) {
+    console.log(" MODEL: Request to save a photo filename in the database");
+
+    let inputs = [filename, userID];
+    const conn = await db.getPool().getConnection();
+    const query = 'UPDATE User SET photo_filename = ? WHERE user_id = ?';
+    await conn.query(query, inputs);
+    conn.release();
 };

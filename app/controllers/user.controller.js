@@ -221,4 +221,48 @@ exports.getPhoto = async function(req, res) {
         res.status(500)
             .send(`CONTROLLER: ERROR getting photo: ${err}`);
     }
+};
+
+exports.setPhoto = async function(req, res) {
+    console.log("\n CONTROLLER: Request to set a user's photo ");
+
+    try {
+        const id = req.params.id;
+        let token = req.get("X-Authorization");
+        let statusMessage = 200;
+
+        const userExists = await user.userExists(id);
+        if (!userExists) {
+           res.status(404)
+               .send();
+           return;
+        }
+
+        let reqUserID = await user.validateUser(token);
+        reqUserID = reqUserID[0].user_id;
+        if (id != reqUserID) {
+            res.status(403)
+                .send();
+            return;
+        }
+
+        let photoName = await user.getPhotoFilename(id);
+        photoName = photoName[0].photo_filename
+        if (photoName === null) {
+            statusMessage = 201;
+        }
+
+        let imageExtension = req.get("Content-Type");
+        const startPos = imageExtension.lastIndexOf("/");
+        imageExtension = imageExtension.substring(startPos + 1, imageExtension.length);
+        let fileName = 'user_' + reqUserID + '.' + imageExtension;
+        await user.saveFileName(fileName, id);
+        req.pipe(fs.createWriteStream(photosDirectory + fileName));
+        res.status(statusMessage)
+            .send();
+
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR setting photo: ${err}`);
+    }
 }

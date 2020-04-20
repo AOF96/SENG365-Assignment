@@ -15,5 +15,6 @@ module.exports = function(app) {
         .patch(users.editUser);
 
     app.route(app.rootUrl + '/users/:id/photo')
-        .get(users.getPhoto);
+        .get(users.getPhoto)
+        .put(users.setPhoto);
 };
