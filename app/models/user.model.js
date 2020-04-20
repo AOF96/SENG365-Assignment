@@ -117,3 +117,15 @@ exports.updateUserInfo = async function(value, id, type) {
 
     conn.release();
 };
+
+exports.getPhotoFilename = async function(id) {
+    console.log(" MODEL: Request to retrieve a photo filename from the database");
+
+    let input = [id];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT photo_filename FROM User WHERE user_id = ?';
+    const [result, _] = await conn.query(query, input);
+    conn.release();
+
+    return result;
+};

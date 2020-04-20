@@ -2,7 +2,8 @@
 
 const UIDGenerator = require('uid-generator');
 const uidgen = new UIDGenerator();
-
+let fs = require('mz/fs');
+const photosDirectory = './storage/photos/';
 const user = require('../models/user.model');
 
 exports.register = async function(req, res) {
@@ -200,3 +201,24 @@ exports.editUser = async function(req, res) {
             .send(`CONTROLLER: ERROR editing user ${err}`);
     }
 };
+
+exports.getPhoto = async function(req, res) {
+    console.log("\n CONTROLLER: Request to get a user's photo ");
+    try {
+        const id = req.params.id;
+        let photoName = await user.getPhotoFilename(id);
+        photoName = photoName[0].photo_filename
+        if (photoName === null) {
+            res.status(404)
+                .send();
+        } else {
+            const image = await fs.readFile(photosDirectory + photoName);
+            const startPos = photoName.lastIndexOf(".");
+            const mimeType = photoName.substring(startPos, photoName.length);
+            res.status(200).contentType(mimeType).send(image);
+        }
+    } catch(err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR getting photo: ${err}`);
+    }
+}
