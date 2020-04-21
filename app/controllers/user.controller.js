@@ -247,8 +247,6 @@ exports.setPhoto = async function(req, res) {
             return;
         }
 
-
-
         let imageExtension = req.get("Content-Type");
         const startPos = imageExtension.lastIndexOf("/");
         imageExtension = imageExtension.substring(startPos + 1, imageExtension.length);
@@ -274,5 +272,53 @@ exports.setPhoto = async function(req, res) {
     } catch (err) {
         res.status(500)
             .send(`CONTROLLER: ERROR setting photo: ${err}`);
+    }
+};
+
+exports.deletePhoto = async function(req, res) {
+    console.log("\n CONTROLLER: Request to set a user's photo ");
+
+    try {
+        const id = req.params.id;
+        const token = req.get("X-Authorization");
+
+        const userExists = await user.userExists(id);
+        if (!userExists) {
+            res.status(404)
+                .send();
+            return;
+        }
+
+        let reqUserID = await user.validateUser(token);
+        if (token === "" || token === "undefined" || token === null || reqUserID.length === 0) {
+            res.status(401)
+                .send();
+            return;
+        }
+
+        reqUserID = reqUserID[0].user_id;
+        if (id != reqUserID) {
+            res.status(403)
+                .send();
+            return;
+        }
+
+        let photoName = await user.getPhotoFilename(id);
+        photoName = photoName[0].photo_filename
+
+        if (photoName === null) {
+            res.status(404)
+                .send()
+            await fs.unlink(photosDirectory + photoName);
+            await user.deleteFilename(id);
+        } else {
+            await fs.unlink(photosDirectory + photoName);
+            await user.deleteFilename(id);
+            res.status(200)
+                .send();
+        }
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR deleting photo: ${err}`);
     }
 }

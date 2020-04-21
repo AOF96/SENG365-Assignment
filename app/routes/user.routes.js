@@ -16,5 +16,6 @@ module.exports = function(app) {
 
     app.route(app.rootUrl + '/users/:id/photo')
         .get(users.getPhoto)
-        .put(users.setPhoto);
+        .put(users.setPhoto)
+        .delete(users.deletePhoto);
 };
