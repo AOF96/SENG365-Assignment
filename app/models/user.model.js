@@ -146,12 +146,22 @@ exports.getPhotoFilename = async function(id) {
     return result;
 };
 
-exports.saveFileName = async function(filename, userID) {
+exports.saveFileName = async function(fileName, userID) {
     console.log(" MODEL: Request to save a photo filename in the database");
 
-    let inputs = [filename, userID];
+    let inputs = [fileName, userID];
     const conn = await db.getPool().getConnection();
     const query = 'UPDATE User SET photo_filename = ? WHERE user_id = ?';
     await conn.query(query, inputs);
+    conn.release();
+};
+
+exports.deleteFilename = async function(userID) {
+    console.log(" MODEL: Request to delete a photo filename from the database");
+
+    let input = [userID];
+    const conn = await db.getPool().getConnection();
+    const query = 'UPDATE User SET photo_filename = NULL WHERE user_id = ?';
+    await conn.query(query, input);
     conn.release();
 };

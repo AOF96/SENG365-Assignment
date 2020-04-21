@@ -229,7 +229,8 @@ exports.setPhoto = async function(req, res) {
     try {
         const id = req.params.id;
         let token = req.get("X-Authorization");
-        let statusMessage = 200;
+        let statusMessage = 201;
+        const validExtensions = ["jpg", "jpeg", "gif", "png"];
 
         const userExists = await user.userExists(id);
         if (!userExists) {
@@ -246,16 +247,25 @@ exports.setPhoto = async function(req, res) {
             return;
         }
 
-        let photoName = await user.getPhotoFilename(id);
-        photoName = photoName[0].photo_filename
-        if (photoName === null) {
-            statusMessage = 201;
-        }
+
 
         let imageExtension = req.get("Content-Type");
         const startPos = imageExtension.lastIndexOf("/");
         imageExtension = imageExtension.substring(startPos + 1, imageExtension.length);
+        if (!validExtensions.includes(imageExtension)) {
+            res.status(400)
+                .send();
+        }
+
         let fileName = 'user_' + reqUserID + '.' + imageExtension;
+        let photoName = await user.getPhotoFilename(id);
+        photoName = photoName[0].photo_filename
+
+        if (photoName !== null) {
+            await fs.unlink(photosDirectory + photoName);
+            await user.deleteFilename(id);
+            statusMessage = 200;
+        }
         await user.saveFileName(fileName, id);
         req.pipe(fs.createWriteStream(photosDirectory + fileName));
         res.status(statusMessage)
