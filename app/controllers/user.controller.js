@@ -1,5 +1,3 @@
-//https://www.npmjs.com/package/uid-generator token generator
-
 const UIDGenerator = require('uid-generator');
 const uidgen = new UIDGenerator();
 let fs = require('mz/fs');
@@ -7,9 +5,9 @@ const photosDirectory = './storage/photos/';
 const user = require('../models/user.model');
 
 exports.register = async function(req, res) {
-    console.log('\n CONTROLLER: Request to register a new user');
 
     try {
+
         const name = req.body.name;
         const email = req.body.email;
         const password = req.body.password;
@@ -18,7 +16,7 @@ exports.register = async function(req, res) {
 
         if (!req.body.hasOwnProperty("name") || password === "" || !email.includes("@")) {
             res.status(400)
-                .send("Please enter a valid email or password");
+                .send();
         } else {
             const result = await user.createUser(name, email, password, city, country);
             res.status(201)
@@ -28,12 +26,9 @@ exports.register = async function(req, res) {
         res.status(500)
             .send(`CONTROLLER: ERROR registering user ${err}`);
     }
-
 };
 
 exports.getUser = async function(req, res) {
-    console.log('\n CONTROLLER: Request to retrieve a user from the database');
-
     try {
         const id = req.params.id;
         const token = req.get("X-Authorization");
@@ -41,7 +36,7 @@ exports.getUser = async function(req, res) {
 
         if (result.length === 0) {
             res.status(404)
-                .send("User not found");
+                .send();
 
         } else if (result[0].hasOwnProperty("email")) {
             res.status(200)
@@ -59,7 +54,6 @@ exports.getUser = async function(req, res) {
                 });
         }
 
-
     } catch (err) {
         res.status(500)
             .send(`CONTROLLER: ERROR retrieving user ${err}`);
@@ -68,7 +62,6 @@ exports.getUser = async function(req, res) {
 };
 
 exports.login = async function(req, res) {
-    console.log('\n CONTROLLER: Request to log user details');
 
     try {
         const email = req.body.email;
@@ -77,7 +70,7 @@ exports.login = async function(req, res) {
         let result = await user.logUser(email);
         if (result.length === 0 || result[0].password !== password) {
             res.status(400)
-                .send("User does not exist or incorrect password");
+                .send();
         } else {
             let newToken = await uidgen.generate();
             await user.setToken(email, newToken);
@@ -85,18 +78,14 @@ exports.login = async function(req, res) {
                 .send({"userId": result[0].user_id, "token": newToken});
         }
 
-
-
-
     } catch (err) {
         res.status(500)
             .send(`CONTROLLER: ERROR login user ${err}`);
     }
-
 };
 
 exports.logout = async function(req, res) {
-    console.log('\n CONTROLLER: Request to log out an user');
+
     try {
         let token = req.get("X-Authorization");
 
@@ -116,7 +105,6 @@ exports.logout = async function(req, res) {
 };
 
 exports.editUser = async function(req, res) {
-    console.log('\n CONTROLLER: Request to edit user information');
 
     try {
         let updated = false;
@@ -133,12 +121,12 @@ exports.editUser = async function(req, res) {
             if (typeof email !== "undefined") {
                 if (!email.includes("@")) {
                     res.status(400)
-                        .send("Invalid email")
+                        .send();
                 }
                 let isPresent = await user.checkEmail(email);
                 if (isPresent) {
                     res.status(400)
-                        .send("Email is already in use");
+                        .send();
                 } else {
                     await user.updateUserInfo(email, id, "email");
                     updated = true;
@@ -151,29 +139,25 @@ exports.editUser = async function(req, res) {
 
                 if (password === "") {
                     res.status(400)
-                        .send("Passwords is empty");
+                        .send();
                 }
 
                 let passwordValidation = await user.getCurrentPassword(id);
                 console.log(passwordValidation);
                 if (passwordValidation[0].password !== currentPassword) {
                     res.status(400)
-                        .send("Passwords don't match");
+                        .send();
                 } else {
                     await user.updateUserInfo(password, id, "password");
                     updated = true;
                 }
-
-
             }
-
 
             let name = req.body.name;
             if (typeof name !== "undefined") {
                 await user.updateUserInfo(name, id, "name");
                 updated = true;
             }
-
 
             let city = req.body.city;
             if (typeof city !== "undefined") {
@@ -189,13 +173,13 @@ exports.editUser = async function(req, res) {
 
             if (updated === false) {
                 res.status(400)
-                    .send("No changes where provided");
+                    .send();
             } else {
                 res.status(200)
                     .send();
             }
-
         }
+
     } catch (err) {
         res.status(500)
             .send(`CONTROLLER: ERROR editing user ${err}`);
@@ -203,11 +187,12 @@ exports.editUser = async function(req, res) {
 };
 
 exports.getPhoto = async function(req, res) {
-    console.log("\n CONTROLLER: Request to get a user's photo ");
+
     try {
         const id = req.params.id;
         let photoName = await user.getPhotoFilename(id);
         const userExists = await user.userExists(id);
+
         if (!userExists) {
             res.status(404)
                 .send();
@@ -218,11 +203,13 @@ exports.getPhoto = async function(req, res) {
                     .send();
                 return;
             }
+
             const image = await fs.readFile(photosDirectory + photoName);
             const startPos = photoName.lastIndexOf(".");
             const mimeType = photoName.substring(startPos, photoName.length);
             res.status(200).contentType(mimeType).send(image);
         }
+
     } catch(err) {
         res.status(500)
             .send(`CONTROLLER: ERROR getting photo: ${err}`);
@@ -230,7 +217,6 @@ exports.getPhoto = async function(req, res) {
 };
 
 exports.setPhoto = async function(req, res) {
-    console.log("\n CONTROLLER: Request to set a user's photo ");
 
     try {
         const id = req.params.id;
@@ -251,6 +237,7 @@ exports.setPhoto = async function(req, res) {
                 .send();
             return;
         }
+
         reqUserID = reqUserID[0].user_id;
         if (id != reqUserID) {
             res.status(403)
@@ -287,7 +274,6 @@ exports.setPhoto = async function(req, res) {
 };
 
 exports.deletePhoto = async function(req, res) {
-    console.log("\n CONTROLLER: Request to set a user's photo ");
 
     try {
         const id = req.params.id;
@@ -332,4 +318,4 @@ exports.deletePhoto = async function(req, res) {
         res.status(500)
             .send(`CONTROLLER: ERROR deleting photo: ${err}`);
     }
-}
+};
