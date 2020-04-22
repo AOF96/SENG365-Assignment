@@ -5,7 +5,6 @@ let fs = require('mz/fs');
 const photosDirectory = './storage/photos/';
 
 exports.getCategories = async function (req, res) {
-    console.log("CONTROLLER: Request to get all categories");
 
     try {
         let categories = await petitions.retrieveCategories();
@@ -18,7 +17,6 @@ exports.getCategories = async function (req, res) {
 };
 
 exports.removePetition = async function (req, res) {
-    console.log("CONTROLLER: Request to delete a petition");
 
     try {
         const petitionID = req.params.id;
@@ -27,13 +25,13 @@ exports.removePetition = async function (req, res) {
         let petitionExists = await signatures.validatePetition(petitionID);
         if (!petitionExists) {
             res.status(404)
-                .send("Unauthorized");
+                .send();
             return;
         }
 
         if (token === "") {
             res.status(401)
-                .send("Unauthorized");
+                .send();
             return;
         }
 
@@ -56,9 +54,8 @@ exports.removePetition = async function (req, res) {
 };
 
 exports.editPetition = async function (req, res) {
-    try {
-        console.log("CONTROLLER: Request to edit a petition");
 
+    try {
         const petitionID = req.params.id;
         const token = req.get("X-Authorization");
 
@@ -130,8 +127,6 @@ exports.editPetition = async function (req, res) {
             updated = true;
         }
 
-
-
         if (updated) {
             res.status(200)
                 .send();
@@ -147,7 +142,6 @@ exports.editPetition = async function (req, res) {
 };
 
 exports.getPetition = async function(req, res) {
-    console.log("CONTROLLER: Request to view a single petition");
 
     try {
         let petitionID = req.params.id;
@@ -161,6 +155,7 @@ exports.getPetition = async function(req, res) {
         const result = await petitions.getOnePetition(petitionID);
         res.status(200)
             .send(result[0]);
+
     } catch (err) {
         res.status(500)
             .send(`CONTROLLER: ERROR viewing petition: ${err}`);
@@ -168,7 +163,6 @@ exports.getPetition = async function(req, res) {
 };
 
 exports.createPetition = async function(req, res) {
-    console.log("CONTROLLER: Request to create a new petition");
 
     try {
         const token = req.get("X-Authorization");
@@ -196,6 +190,7 @@ exports.createPetition = async function(req, res) {
                 .send();
             return;
         }
+
         if (typeof closingDate !== "undefined") {
             closingDate = new Date(closingDate);
             if (closingDate < currentDate) {
@@ -207,9 +202,7 @@ exports.createPetition = async function(req, res) {
             }
         }
 
-
         const result = await petitions.insertPetition(userID, title, description, categoryId, currentDate, closingDate, dateIsValid);
-
         res.status(201)
             .send({"petitionId": result.insertId});
     } catch (err) {
@@ -219,7 +212,6 @@ exports.createPetition = async function(req, res) {
 };
 
 exports.viewPetitions = async function (req, res) {
-    console.log("CONTROLLER: Request to view petitions with different categories");
 
     try {
         let result;
@@ -259,23 +251,23 @@ exports.viewPetitions = async function (req, res) {
             if (typeof startIndex !== "undefined") {
                 result = result.slice(startIndex);
             }
+
             if (typeof count !== "undefined") {
                 result = result.slice(0, count);
             }
+
             res.status(200)
                 .send(result);
         }
-
 
     } catch (err) {
         res.status(500)
             .send(`CONTROLLER: ERROR viewing petitions: ${err}`);
     }
-
-}
+};
 
 exports.getPhoto = async function(req, res) {
-    console.log("\n CONTROLLER: Request to get a petition's photo ");
+
     try {
         const petitionID = req.params.id;
         let photoName = await petitions.getPhotoFilename(petitionID);
@@ -291,6 +283,7 @@ exports.getPhoto = async function(req, res) {
                     .send();
                 return;
             }
+
             const image = await fs.readFile(photosDirectory + photoName);
             const startPos = photoName.lastIndexOf(".");
             const mimeType = photoName.substring(startPos, photoName.length);
@@ -303,7 +296,6 @@ exports.getPhoto = async function(req, res) {
 };
 
 exports.setPhoto = async function(req, res) {
-    console.log("\n CONTROLLER: Request to set a user's photo ");
 
     try {
         let petitionID = req.params.id;
@@ -350,6 +342,7 @@ exports.setPhoto = async function(req, res) {
             await petitions.deleteFilename(petitionID);
             statusMessage = 200;
         }
+
         await petitions.saveFileName(fileName, petitionID);
         req.pipe(fs.createWriteStream(photosDirectory + fileName));
         res.status(statusMessage)

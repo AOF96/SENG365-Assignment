@@ -1,17 +1,16 @@
 const db = require('../../config/db');
 
 exports.retrieveCategories = async function() {
-    console.log("MODEL: Request to fetch all categories from the database.");
 
     const conn = await db.getPool().getConnection();
     const query = 'SELECT category_id as categoryId, name from Category';
     const [result, _] = await conn.query(query);
+
     conn.release();
     return result;
 };
 
 exports.deletePetition = async function(userID, petitionID) {
-    console.log("MODEL: Request to delete a petition from the database.");
 
     let result;
     const conn = await db.getPool().getConnection();
@@ -32,7 +31,6 @@ exports.deletePetition = async function(userID, petitionID) {
 };
 
 exports.alterPetition = async function(userID, petitionID, title, description, categoryId, closingDate) {
-    console.log("MODEL: Request to alter petition details from the database.");
 
     let result;
     const conn = await db.getPool().getConnection();
@@ -41,7 +39,6 @@ exports.alterPetition = async function(userID, petitionID, title, description, c
     const [queryResult, _] = await conn.query(userQuery, inputs);
 
     if (queryResult.length > 0) {
-
         result = true;
     } else {
         result = false;
@@ -52,7 +49,6 @@ exports.alterPetition = async function(userID, petitionID, title, description, c
 };
 
 exports.validateCategory = async function(categoryID) {
-    console.log("MODEL: Request to access the database to check if a category exists.");
 
     let result = false;
     const conn = await db.getPool().getConnection();
@@ -68,7 +64,6 @@ exports.validateCategory = async function(categoryID) {
 };
 
 exports.validateDate = async function(petitionID, currentDate) {
-    console.log("MODEL: Request to access the database and check if a petition has expired.");
 
     let result = false;
     const conn = await db.getPool().getConnection();
@@ -84,21 +79,21 @@ exports.validateDate = async function(petitionID, currentDate) {
     if (closingDate < currentDate) {
         result = true;
     }
+
     return result;
 };
 
 exports.updatePetitionData = async function(value, id, type) {
-    console.log(" MODEL: Request to modify petitions data in the database");
 
     let values = [value, id];
     const conn = await db.getPool().getConnection();
     const query = 'UPDATE Petition SET '.concat(type," = ? WHERE petition_id = ?");
     await conn.query(query, values);
+
     conn.release();
 };
 
 exports.validateAuthor = async function(userID, petitionID) {
-    console.log(" MODEL: Request to check if the petition was created by the given user id");
 
     let result = false;
     const conn = await db.getPool().getConnection();
@@ -115,7 +110,6 @@ exports.validateAuthor = async function(userID, petitionID) {
 };
 
 exports.getOnePetition = async function(petitionID) {
-    console.log("MODEL: Request to retrieve a petition from the database");
 
     let input = [petitionID];
     const conn = await db.getPool().getConnection();
@@ -125,13 +119,12 @@ exports.getOnePetition = async function(petitionID) {
         'a.country as authorCountry, p.created_date as createdDate, ' +
         'p.closing_date as closingDate FROM Petition p JOIN User a WHERE p.petition_id = ? AND p.author_id = a.user_id';
     const [result, _] = await conn.query(query, input);
-    conn.release();
 
+    conn.release();
     return result;
 };
 
 exports.insertPetition = async function(userID, title, description, categoryId, currentDate, closingDate, dateIsValid) {
-    console.log("MODEL: Request to insert a new petition into the database");
 
     let inputs = [title, description, userID, categoryId, currentDate];
     const conn = await db.getPool().getConnection();
@@ -143,12 +136,12 @@ exports.insertPetition = async function(userID, title, description, categoryId, 
         const dateQuery = "UPDATE Petition SET closing_date = ? WHERE petition_id = ?";
         await conn.query(dateQuery, inputs);
     }
+
     conn.release();
     return result;
 };
 
 exports.retrievePetitions = async function(hasParams, categoryId, authorId, sortParameter, q) {
-    console.log("MODEL: Request to retrieve petitions from the database");
 
     const conn = await db.getPool().getConnection();
     let result;
@@ -195,7 +188,6 @@ exports.retrievePetitions = async function(hasParams, categoryId, authorId, sort
 };
 
 exports.getPhotoFilename = async function(id) {
-    console.log(" MODEL: Request to retrieve a photo filename from the database");
 
     let input = [id];
     const conn = await db.getPool().getConnection();
@@ -207,21 +199,21 @@ exports.getPhotoFilename = async function(id) {
 };
 
 exports.saveFileName = async function(fileName, petitionID) {
-    console.log(" MODEL: Request to save a photo filename in the database");
 
     let inputs = [fileName, petitionID];
     const conn = await db.getPool().getConnection();
     const query = 'UPDATE Petition SET photo_filename = ? WHERE petition_id = ?';
     await conn.query(query, inputs);
+
     conn.release();
 };
 
 exports.deleteFilename = async function(petitionID) {
-    console.log(" MODEL: Request to delete a photo filename from the database");
 
     let input = [petitionID];
     const conn = await db.getPool().getConnection();
     const query = 'UPDATE Petition SET photo_filename = NULL WHERE petition_id = ?';
     await conn.query(query, input);
+
     conn.release();
 };
