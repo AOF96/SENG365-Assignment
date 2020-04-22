@@ -192,4 +192,36 @@ exports.retrievePetitions = async function(hasParams, categoryId, authorId, sort
 
     conn.release();
     return result[0];
-}
+};
+
+exports.getPhotoFilename = async function(id) {
+    console.log(" MODEL: Request to retrieve a photo filename from the database");
+
+    let input = [id];
+    const conn = await db.getPool().getConnection();
+    const query = 'SELECT photo_filename FROM Petition WHERE petition_id = ?';
+    const [result, _] = await conn.query(query, input);
+    conn.release();
+
+    return result;
+};
+
+exports.saveFileName = async function(fileName, petitionID) {
+    console.log(" MODEL: Request to save a photo filename in the database");
+
+    let inputs = [fileName, petitionID];
+    const conn = await db.getPool().getConnection();
+    const query = 'UPDATE Petition SET photo_filename = ? WHERE petition_id = ?';
+    await conn.query(query, inputs);
+    conn.release();
+};
+
+exports.deleteFilename = async function(petitionID) {
+    console.log(" MODEL: Request to delete a photo filename from the database");
+
+    let input = [petitionID];
+    const conn = await db.getPool().getConnection();
+    const query = 'UPDATE Petition SET photo_filename = NULL WHERE petition_id = ?';
+    await conn.query(query, input);
+    conn.release();
+};

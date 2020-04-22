@@ -207,11 +207,17 @@ exports.getPhoto = async function(req, res) {
     try {
         const id = req.params.id;
         let photoName = await user.getPhotoFilename(id);
-        photoName = photoName[0].photo_filename
-        if (photoName === null) {
+        const userExists = await user.userExists(id);
+        if (!userExists) {
             res.status(404)
                 .send();
         } else {
+            photoName = photoName[0].photo_filename;
+            if (photoName === null) {
+                res.status(404)
+                    .send();
+                return;
+            }
             const image = await fs.readFile(photosDirectory + photoName);
             const startPos = photoName.lastIndexOf(".");
             const mimeType = photoName.substring(startPos, photoName.length);
@@ -240,6 +246,11 @@ exports.setPhoto = async function(req, res) {
         }
 
         let reqUserID = await user.validateUser(token);
+        if (token === "" || token === "undefined" || token === null || reqUserID.length === 0) {
+            res.status(401)
+                .send();
+            return;
+        }
         reqUserID = reqUserID[0].user_id;
         if (id != reqUserID) {
             res.status(403)

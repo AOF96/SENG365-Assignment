@@ -1,6 +1,8 @@
 const petitions = require('../models/petitions.model');
 const user = require('../models/user.model');
 const signatures = require('../models/petitions.signatures.model');
+let fs = require('mz/fs');
+const photosDirectory = './storage/photos/';
 
 exports.getCategories = async function (req, res) {
     console.log("CONTROLLER: Request to get all categories");
@@ -271,3 +273,90 @@ exports.viewPetitions = async function (req, res) {
     }
 
 }
+
+exports.getPhoto = async function(req, res) {
+    console.log("\n CONTROLLER: Request to get a petition's photo ");
+    try {
+        const petitionID = req.params.id;
+        let photoName = await petitions.getPhotoFilename(petitionID);
+        const petitionExists = signatures.validatePetition(petitionID);
+
+        if (!petitionExists || photoName.length === 0) {
+            res.status(404)
+                .send();
+        } else {
+            photoName = photoName[0].photo_filename;
+            if (photoName === null) {
+                res.status(404)
+                    .send();
+                return;
+            }
+            const image = await fs.readFile(photosDirectory + photoName);
+            const startPos = photoName.lastIndexOf(".");
+            const mimeType = photoName.substring(startPos, photoName.length);
+            res.status(200).contentType(mimeType).send(image);
+        }
+    } catch(err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR getting photo: ${err}`);
+    }
+};
+
+exports.setPhoto = async function(req, res) {
+    console.log("\n CONTROLLER: Request to set a user's photo ");
+
+    try {
+        let petitionID = req.params.id;
+        let token = req.get("X-Authorization");
+        let statusMessage = 201;
+        const validExtensions = ["jpg", "jpeg", "gif", "png"];
+
+        let petitionExists = await signatures.validatePetition(petitionID);
+        if (!petitionExists) {
+            res.status(404)
+                .send();
+            return;
+        }
+
+        let userID = await user.validateUser(token);
+        if (token === "" || token === "undefined" || token === null || userID.length === 0) {
+            res.status(401)
+                .send();
+            return;
+        }
+
+        userID = userID[0].user_id;
+        const isAuthor = await petitions.validateAuthor(userID, petitionID);
+        if (!isAuthor) {
+            res.status(403)
+                .send();
+            return;
+        }
+
+        let imageExtension = req.get("Content-Type");
+        const startPos = imageExtension.lastIndexOf("/");
+        imageExtension = imageExtension.substring(startPos + 1, imageExtension.length);
+        if (!validExtensions.includes(imageExtension)) {
+            res.status(400)
+                .send();
+        }
+
+        let fileName = 'petition_' + petitionID + '.' + imageExtension;
+        let photoName = await petitions.getPhotoFilename(petitionID);
+        photoName = photoName[0].photo_filename
+
+        if (photoName !== null) {
+            await fs.unlink(photosDirectory + photoName);
+            await petitions.deleteFilename(petitionID);
+            statusMessage = 200;
+        }
+        await petitions.saveFileName(fileName, petitionID);
+        req.pipe(fs.createWriteStream(photosDirectory + fileName));
+        res.status(statusMessage)
+            .send();
+
+    } catch (err) {
+        res.status(500)
+            .send(`CONTROLLER: ERROR setting photo: ${err}`);
+    }
+};

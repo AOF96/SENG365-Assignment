@@ -13,4 +13,8 @@ module.exports = function(app) {
     app.route(app.rootUrl + '/petitions')
         .post(petitions.createPetition)
         .get(petitions.viewPetitions);
+
+    app.route(app.rootUrl + '/petitions/:id/photo')
+        .get(petitions.getPhoto)
+        .put(petitions.setPhoto);
 };
